@@ -9,9 +9,22 @@ Create a new Firefox Account in Firefox 29 or newer and you'll be able to use th
 ## Example
 
 ```
+const LocalStorage = require('node-localstorage').LocalStorage;
+const localStorage = new LocalStorage('./store');
+
+let unblockCode = null;
+if (localStorage.getItem("authState") === null) {
+  const readlineSync = require("readline-sync");
+  unblockCode = readlineSync.question("Autorization code (if you don't have, let's proceed): ");
+}
+
 var FxSync = require('fx-sync');
 
-var sync = new FxSync({ email: 'me@example.com', password: 'hunter2' });
+var sync = new FxSync({
+  email: 'me@example.com', password: 'hunter2'
+}, {
+  unblockCode: unblockCode || null;
+}, localStorage);
 
 // Download and print my super useful bookmarks
 
