@@ -34,8 +34,7 @@ sync.fetch('bookmarks')
       .filter(filterBookmark)
       .map(mapBookmark)
       .forEach(renderBookmark);
-  })
-  .done();
+  });  
 
 function filterBookmark(bookmark) {
   return bookmark.type === 'bookmark';
