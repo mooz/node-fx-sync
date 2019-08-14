@@ -8,7 +8,7 @@ Create a new Firefox Account in Firefox 29 or newer and you'll be able to use th
 
 ## Example
 
-```
+```javascript
 const LocalStorage = require('node-localstorage').LocalStorage;
 const localStorage = new LocalStorage('./store');
 
