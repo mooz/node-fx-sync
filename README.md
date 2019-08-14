@@ -56,9 +56,12 @@ function renderBookmark(bookmark) {
 
 ## API
 
-#### `sync = new FxSync({ email: <email>, password: <password> })`
+#### `sync = new FxSync({ email: <email>, password: <password> }, { unblockCode: <unblockCode>}, sessionStore)`
 
 Creates a new instance.
+
+- `unblockCode` is the code such as `NDA85ESD` sent by Firefox Accounts.
+- `sessionStore` is arbitrary object, which is used to persist your session. `node-localstorage` is recommended as in the above example.
 
 #### `sync.fetch(collection, options)`
 
