@@ -1,74 +1,74 @@
-
 // external dependencies
 module.exports = function (P, crypto, HKDF, jwcrypto, FxAccountsClient, XHR) {
 
-const Request = require('./request')(XHR);
-const Crypto = require('./crypto')(P, HKDF, crypto);
-const SyncAuth = require('./syncAuth')();
-const FxaUser = require('./fxaUser')(P, jwcrypto, FxAccountsClient);
-const FxaSyncAuth = require('./fxaSyncAuth')(FxaUser, Crypto);
-const SyncClient = require('./syncClient')(Request, Crypto, P);
+  const Request = require('./request')(XHR);
+  const Crypto = require('./crypto')(P, HKDF, crypto);
+  const SyncAuth = require('./syncAuth')();
+  const FxaUser = require('./fxaUser')(P, jwcrypto, FxAccountsClient);
+  const FxaSyncAuth = require('./fxaSyncAuth')(FxaUser, Crypto);
+  const SyncClient = require('./syncClient')(Request, Crypto, P);
+  const BJSON = require('buffer-json');
 
-const DEFAULTS = {
-  syncAuthUrl: 'https://token.services.mozilla.com',
-  fxaServerUrl: 'https://api.accounts.firefox.com/v1',
-  // certs last a year
-  duration: 3600 * 24 * 365
-};
+  const DEFAULTS = {
+    syncAuthUrl: 'https://token.services.mozilla.com',
+    fxaServerUrl: 'https://api.accounts.firefox.com/v1',
+    // certs last a year
+    duration: 3600 * 24 * 365
+  };
 
-function FxSync(creds, options) {
-  if (!options) options = {};
-  this._creds = creds || {};
+  function FxSync(creds, options, store) {
+    if (!options) options = {};
+    this._creds = creds || {};
+    this._store = store;
+    this._unblockCode = options.unblockCode;
 
-  if (creds.authState) {
-    this.authState = creds.authState || {};
-    this._client = new SyncClient(this.authState);
+    if (store.getItem("authState")) {
+      this.authState = BJSON.parse(store.getItem("authState"));
+      this._client = new SyncClient(this.authState);
+    }
+
+    var syncAuthUrl = options.syncAuthUrl || DEFAULTS.syncAuthUrl;
+    var syncAuth = new SyncAuth(new Request(syncAuthUrl));
+
+    this._fxaSyncAuthClient = new FxaSyncAuth(syncAuth, {
+      certDuration: DEFAULTS.duration,
+      duration: DEFAULTS.duration,
+      audience: syncAuthUrl,
+      fxaServerUrl: options.fxaServerUrl || DEFAULTS.fxaServerUrl
+    });
   }
 
-  var authUrl = options.syncAuthUrl || DEFAULTS.syncAuthUrl;
-  var syncAuth = new SyncAuth(new Request(authUrl));
-
-  this._authClient = new FxaSyncAuth(syncAuth, {
-    certDuration: DEFAULTS.duration,
-    duration: DEFAULTS.duration,
-    audience: authUrl,
-    fxaServerUrl: options.fxaServerUrl || DEFAULTS.fxaServerUrl
-  });
-}
-
-FxSync.prototype.auth = function(creds) {
-  return this._auth(creds).then(function() {
+  FxSync.prototype.auth = async function (creds) {
+    await this._auth(creds);
     return this.authState;
-  });
-};
+  };
 
-FxSync.prototype._auth = function(creds) {
-  if (this._client) return this._client.prepare();
+  FxSync.prototype._auth = async function (creds, unblockCode) {
+    if (this._client) return this._client.prepare();
 
-  return this._authClient.auth(creds || this._creds)
+    this.authState = await this._fxaSyncAuthClient.auth(
+      creds || this._creds,
+      unblockCode || this._unblockCode
+    );
     // save credentials
-    .then(function(authState) {
-      this.authState = authState;
-      this._client = new SyncClient(this.authState);
-      return this._client.prepare();
-    }.bind(this));
-};
+    this._store.setItem("authState", BJSON.stringify(this.authState));
 
-FxSync.prototype.fetchIDs = function(collection, options) {
-  return this._auth().then(function() {
+    this._client = new SyncClient(this.authState);
+    return this._client.prepare();
+  };
+
+  FxSync.prototype.fetchIDs = async function (collection, options) {
+    await this._auth();
     return this._client.fetchCollection(collection, options);
-  }.bind(this));
-};
+  };
 
-FxSync.prototype.fetch = function(collection, options) {
-  if (!options) options = {};
-  options.full = true;
+  FxSync.prototype.fetch = async function (collection, options) {
+    if (!options) options = {};
+    options.full = true;
 
-  return this._auth().then(function() {
+    await this._auth();
     return this._client.fetchCollection(collection, options);
-  }.bind(this));
-};
+  };
 
-return FxSync;
-
+  return FxSync;
 };

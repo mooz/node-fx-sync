@@ -16,6 +16,7 @@
   "license": "APL 2.0",
   "dependencies": {
     "browserid-crypto": "^0.9.1",
+    "buffer-json": "^2.0.0",
     "fxa-js-client": "1.0.x",
     "hawk": "~7.0.10",
     "hkdf": "0.0.2",
