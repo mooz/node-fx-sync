@@ -1,6 +1,6 @@
 
 module.exports = function(Request) {
-if (!Request) Request = require('./request')();
+if (!Request) Request = require('./request');
 
 /* Sync Auth
  *

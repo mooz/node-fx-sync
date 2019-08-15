@@ -1,12 +1,13 @@
 // external dependencies
-module.exports = function (P, crypto, HKDF, jwcrypto, FxAccountsClient, XHR) {
+module.exports = function (crypto, HKDF, jwcrypto, FxAccountsClient, XHR) {
 
-  const Request = require('./request')(XHR);
-  const Crypto = require('./crypto')(P, HKDF, crypto);
-  const SyncAuth = require('./syncAuth')();
-  const FxaUser = require('./fxaUser')(P, jwcrypto, FxAccountsClient);
+  const Request = require('./request');
+  const Crypto = require('./crypto')(HKDF, crypto);
+  const SyncAuth = require('./syncAuth')(Request);
+
+  const FxaUser = require('./fxaUser')(XHR, jwcrypto, FxAccountsClient);
   const FxaSyncAuth = require('./fxaSyncAuth')(FxaUser, Crypto);
-  const SyncClient = require('./syncClient')(Request, Crypto, P);
+  const SyncClient = require('./syncClient')(Request, Crypto);
   const BJSON = require('buffer-json');
 
   const DEFAULTS = {

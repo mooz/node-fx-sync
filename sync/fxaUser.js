@@ -1,14 +1,13 @@
-module.exports = function (xhr, jwcrypto, P, FxAccountsClient) {
-
+module.exports = function (xhr, jwcrypto, FxAccountsClient) {
   if (!xhr) xhr = require('xmlhttprequest').XMLHttpRequest;
+
   if (!jwcrypto) {
     jwcrypto = require('browserid-crypto');
     require("browserid-crypto/lib/algs/rs");
     require("browserid-crypto/lib/algs/ds");
   }
-  if (!P) P = Promise;
-  if (!FxAccountsClient) FxAccountsClient = require('fxa-js-client');
 
+  if (!FxAccountsClient) FxAccountsClient = require('fxa-js-client');
   var certDuration = 3600 * 24 * 365;
 
   /*

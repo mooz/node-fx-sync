@@ -1,6 +1,4 @@
-module.exports = function (P, HKDF, crypto) {
-
-  if (!P) P = Promise;
+module.exports = function (HKDF, crypto) {
   if (!HKDF) HKDF = require('hkdf');
   if (!crypto) crypto = require('crypto');
 

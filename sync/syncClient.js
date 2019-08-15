@@ -1,8 +1,7 @@
-module.exports = function (Request, Crypto, P) {
+module.exports = function (Request, Crypto) {
 
-  if (!Request) Request = require('./request')();
+  if (!Request) Request = require('./request');
   if (!Crypto) Crypto = require('./crypto')();
-  if (!P) P = Promise;
 
   /* Sync client
    * Uses the auth flow described here:
@@ -40,20 +39,12 @@ module.exports = function (Request, Crypto, P) {
       }.bind(this));
   };
 
-  SyncClient.prototype._fetchCollectionKeys = function (keyBundle) {
+  SyncClient.prototype._fetchCollectionKeys = async function (keyBundle) {
     if (!keyBundle && this.collectionKeys) return P(this.collectionKeys);
-
-    return this.client.get('/storage/crypto/keys')
-      .then(function (wbo) {
-          return Crypto.decryptCollectionKeys(keyBundle || this.keyBundle, wbo);
-        }.bind(this),
-        function (err) {
-          console.error(err);
-          throw new Error("No collection keys found. Have you set up Sync in your browser?");
-        })
-      .then(function (collectionKeys) {
-        return this.collectionKeys = collectionKeys;
-      }.bind(this));
+    let wbo = await this.client.get('/storage/crypto/keys');
+    let collectionKeys = Crypto.decryptCollectionKeys(keyBundle || this.keyBundle, wbo);
+    this.collectionKeys = collectionKeys;
+    return collectionKeys;
   };
 
   SyncClient.prototype._collectionKey = function (collection) {
