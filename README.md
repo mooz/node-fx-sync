@@ -23,7 +23,7 @@ var FxSync = require('fx-sync');
 var sync = new FxSync({
   email: 'me@example.com', password: 'hunter2'
 }, {
-  unblockCode: unblockCode || null;
+  unblockCode: unblockCode || null
 }, localStorage);
 
 // Download and print my super useful bookmarks
